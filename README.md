@@ -98,10 +98,11 @@ Actions to create and approve pull requests*.
 
 ### GitHub Pages
 
-1. Push the repository to GitHub.
-2. *Settings → Pages → Build and deployment → Source: GitHub Actions*.
-3. Every push to `main` runs [pages.yml](.github/workflows/pages.yml): tests,
-   build of `site/data/venues.json` from `data/raw/`, deploy.
+Every push to `main` runs [pages.yml](.github/workflows/pages.yml): tests,
+build of `site/data/venues.json` from `data/raw/`, then publication of `site/`
+on the `gh-pages` branch, which GitHub Pages serves (*Settings → Pages →
+Source: Deploy from a branch → gh-pages / root*). The branch holds a single
+commit, overwritten at each deploy.
 
 ### Self-hosted
 
