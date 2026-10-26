@@ -10,8 +10,20 @@ def checkdircreate(path):
 
 
 def download_url(url, path):
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
     folder_path = path  # f"outs/temp.csv"
-    urllib.request.urlretrieve(url, folder_path)
+    # urllib.request.urlretrieve(url, folder_path)
+    req = urllib.request.Request(url, headers=headers)
+
+    with urllib.request.urlopen(req) as response:
+        with open(folder_path, "wb") as f:
+            f.write(response.read())
 
 
 def dataframe_update(temp_df, filter_area, filter_subareas):
@@ -57,15 +69,20 @@ if __name__ == "__main__":
     mode = "aggregative" # or cascade filter
 
     # mode = "cascade" # or cascade filter
-    list_types = ["j", "p"]
+    list_types = ["all"]
+
     path_csv_temp = f"outs/temp.csv"
     for contr_type in list_types:
-        if pivot_sub_area_code:
-            url_temp = f"https://www.scimagojr.com/journalrank.php?area={pivot_area_code}&category={pivot_sub_area_code}&type={contr_type}&out=xls"
-        else:
-            url_temp = f"https://www.scimagojr.com/journalrank.php?area={pivot_area_code}&type={contr_type}&out=xls"
+        # if pivot_sub_area_code:
+        #     # https://www.scimagojr.com/journalrank.php?area=1700&out=xls
+        #     url_temp = f"https://www.scimagojr.com/journalrank.php?area={pivot_area_code}&category={pivot_sub_area_code}&type={contr_type}&out=xls"
+        # else:
+        #     url_temp = f"https://www.scimagojr.com/journalrank.php?area={pivot_area_code}&out=xls"
 
-        download_url(url_temp, path_csv_temp)
+        # # https://www.scimagojr.com/journalrank.php?area=1200&out=xls
+        # print(url_temp)
+        # download_url(url_temp, path_csv_temp)
+        path_csv_temp = "scimagojr 2024  Subject Area - Computer Science.csv"
         temp_df = pd.read_csv(path_csv_temp, sep=";")
         final_df = pd.DataFrame(columns=temp_df.columns)
         suffix = ""

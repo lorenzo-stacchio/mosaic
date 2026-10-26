@@ -1,0 +1,12 @@
+{
+  "conferences": {
+    "source": "ICORE2026",
+    "rows": 987,
+    "fetched": "2026-10-26"
+  },
+  "journals": {
+    "source": "CORE2020",
+    "rows": 640,
+    "fetched": "2026-10-26"
+  }
+}

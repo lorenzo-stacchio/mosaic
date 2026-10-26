@@ -1,0 +1,8 @@
+.git
+.github
+outs
+configs
+site/data
+**/__pycache__
+*.csv
+!data/raw/**/*.csv

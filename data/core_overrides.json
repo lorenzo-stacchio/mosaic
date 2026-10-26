@@ -1,0 +1,8 @@
+{
+  "_comment": "Manual CORE -> SCImago links for conferences whose titles differ too much to be matched automatically. Key: CORE acronym. Value: exact SCImago title, or null to forbid any automatic match.",
+  "conferences": {
+    "AAAI": "Proceedings of the AAAI Conference on Artificial Intelligence",
+    "SIGMOD": "Proceedings of the ACM SIGMOD International Conference on Management of Data",
+    "ICML": null
+  }
+}

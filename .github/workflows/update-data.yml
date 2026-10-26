@@ -1,0 +1,44 @@
+name: Refresh rankings data
+
+# Runs once a year, after SCImago publishes its yearly update (usually spring),
+# and on demand. Refreshes CORE and the OpenAlex enrichment, tries SCImago,
+# and opens a pull request with the changes for review.
+on:
+  schedule:
+    - cron: "0 6 15 6 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: CORE rankings
+        run: python -m crossfield fetch --core
+      - name: SCImago (may be refused; then add the file manually, see README)
+        continue-on-error: true
+        run: python -m crossfield fetch --scimago
+      - name: OpenAlex topics and websites
+        env:
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+        run: python -m crossfield fetch --openalex
+      - name: Check the build
+        run: python -m crossfield build
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: data-refresh
+          commit-message: Refresh CORE, SCImago and OpenAlex data
+          title: Refresh rankings data
+          body: |
+            Automated yearly refresh of `data/raw/`.
+
+            If SCImago refused the automated download, add the new yearly export
+            to `data/raw/scimago/` on this branch before merging (see README).
+          add-paths: data/raw
