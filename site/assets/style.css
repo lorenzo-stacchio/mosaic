@@ -398,6 +398,7 @@ h2 { margin: 0; font: 400 24px/1.2 var(--serif); letter-spacing: -0.01em; }
 
 .v-detail { margin: 0 0 4px; font-size: 14px; color: var(--ink-2); max-width: 78ch; }
 .v-detail .lbl { color: var(--ink-3); }
+.v-detail.v-profile { color: var(--ink); }
 .v-detail .hit { color: var(--ink); font-weight: 500; }
 .v-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 14px; }
 .v-links a { display: inline-flex; align-items: center; gap: 4px; }

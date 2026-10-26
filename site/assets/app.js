@@ -54,8 +54,8 @@
       v.am = 0;
       for (const a of v.a) v.am |= 1 << a;
       v.cs = v.k.map((x) => x[0]);
-      const topics = (v.x || []).map((i) => d.topics[i]);
-      v.ft = fold([v.t, v.p, v.r?.n, ...(v.r?.f || []), ...topics, ...(v.s || [])].filter(Boolean).join(" "));
+      const cats = v.k.map(([c]) => d.cats[c].n);
+      v.ft = fold([v.t, v.p, v.r?.n, ...(v.r?.f || []), ...cats, ...(v.s || [])].filter(Boolean).join(" "));
     }
     const areaCount = new Array(d.areas.length).fill(0);
     const catCount = new Array(d.cats.length).fill(0);
@@ -279,6 +279,32 @@
     return q > 0 ? `<span class="qchip q${q}">Q${q}</span>` : '<span class="qchip q0" title="No quartile in this field">–</span>';
   }
 
+  /* One-sentence profile composed from SCImago data only (areas and
+     category quartiles), so it is exact for every venue. */
+  function profile(v) {
+    if (v.m) {
+      return `Computer science ${v.y === "p" ? "conference" : "journal"} ranked ${v.r.k} in CORE ${v.r.e}, not indexed by SCImago.`;
+    }
+    const areas = v.a.map((a) => D.areas[a].n);
+    const kind = TYPE_SINGULAR[v.y].toLowerCase();
+    let text = areas.length > 1
+      ? `Multidisciplinary ${kind} spanning ${areas.length} subject areas: ${areas.join("; ")}.`
+      : areas.length ? `Single-area ${kind} in ${areas[0]}.` : "";
+    const ranked = v.k.filter(([, q]) => q);
+    if (!ranked.length) return `${text} No quartile assigned by SCImago yet.`;
+    const best = Math.min(...ranked.map(([, q]) => q));
+    const top = ranked.filter(([, q]) => q === best).map(([c]) => D.cats[c].n);
+    const n = v.k.length;
+    if (top.length === n) {
+      text += n === 1 ? ` Q${best} in its only category.` : ` Q${best} in all ${n} of its categories.`;
+    } else {
+      const named = top.length <= 2 ? `, in ${top.join(" and ")}` : "";
+      text += ` Q${best} in ${top.length} of ${n} categories${named}.`;
+    }
+    return text;
+  }
+
+  function issnUrl(v) { return `https://portal.issn.org/resource/ISSN/${v.s[0]}`; }
   function scimagoUrl(v) { return `https://www.scimagojr.com/journalsearch.php?q=${v.i.slice(1)}&tip=sid&clean=0`; }
   function coreUrl(r) { return `https://portal.core.edu.au/${r.d === "c" ? "conf-ranks" : "jnl-ranks"}/${r.i}/`; }
 
@@ -313,13 +339,11 @@
       });
       cats = `<p class="v-detail"><span class="lbl">Categories:</span> ${list.join("; ")}</p>`;
     }
-    const topics = v.x?.length
-      ? `<p class="v-detail"><span class="lbl">Main topics:</span> ${esc(v.x.map((i) => D.topics[i]).join("; "))}</p>`
-      : "";
+    const about = `<p class="v-detail v-profile">${esc(profile(v))}</p>`;
 
     const links = [];
     if (fromScimago) links.push(`<a href="${href}" target="_blank" rel="noopener">SCImago profile ${ICON_OUT}</a>`);
-    if (v.u) links.push(`<a href="${esc(v.u)}" target="_blank" rel="noopener">Website ${ICON_OUT}</a>`);
+    if (v.s) links.push(`<a href="${issnUrl(v)}" target="_blank" rel="noopener">ISSN record ${ICON_OUT}</a>`);
     if (v.r) links.push(`<a href="${coreUrl(v.r)}" target="_blank" rel="noopener">CORE entry ${ICON_OUT}</a>`);
 
     const metrics = [];
@@ -327,6 +351,8 @@
       metrics.push(`<div class="metric"><dt>SJR</dt><dd>${v.j != null ? v.j.toFixed(3) : "–"}</dd></div>`);
       metrics.push(`<div class="metric"><dt>Best quartile</dt><dd>${qchip(v.q || 0)}</dd></div>`);
       metrics.push(`<div class="metric"><dt>H-index</dt><dd>${v.h ?? "–"}</dd></div>`);
+      if (v.e != null) metrics.push(`<div class="metric"><dt>Cites per doc, 2 yrs</dt><dd>${v.e.toFixed(2)}</dd></div>`);
+      if (v.d != null) metrics.push(`<div class="metric"><dt>Docs in ${D.meta.scimago.year}</dt><dd>${fmt.format(v.d)}</dd></div>`);
     }
     if (v.r) {
       const ranked = v.r.o < 9;
@@ -340,8 +366,8 @@
           <h3 class="v-title"><a href="${href}" target="_blank" rel="noopener">${esc(v.t)}</a><span class="v-kind">${esc(kind)}</span></h3>
           <p class="v-pub">${pubLine}</p>
           <div class="v-fields">${fields}</div>
+          ${about}
           ${cats}
-          ${topics}
           <div class="v-links">${links.join("")}</div>
         </div>
         <dl class="v-metrics">${metrics.join("")}</dl>
@@ -363,7 +389,7 @@
       empty.hidden = false;
       empty.innerHTML = `<h3>Start with the fields you work across</h3>
         <p>For example, a chemist who builds machine-learning models might add <em>Chemistry</em> and <em>Artificial Intelligence</em>; a historian working with quantitative methods might add <em>History</em> and <em>Mathematics</em>.</p>
-        <p>Each venue then shows its quartile in every field you chose, its main topics, and links to its SCImago profile, website and CORE entry.</p>`;
+        <p>Each venue then shows its quartile in every field you chose, a short profile of its scope, and links to its SCImago profile, ISSN record and CORE entry.</p>`;
       return;
     }
     if (!results.length) {
@@ -628,16 +654,16 @@
   function exportCsv() {
     const names = state.fields.map(fieldLabel);
     const head = ["Title", "Type", "ISSN", "Publisher", "Country", "Open access", "SJR", "Best quartile", "H-index",
-      ...names.map((n) => `Quartile in ${n}`), "CORE rank", "CORE edition", "Categories", "Main topics",
-      "SCImago URL", "Website", "CORE URL"];
+      ...names.map((n) => `Quartile in ${n}`), "Citations per document (2 years)", `Documents in ${D.meta.scimago.year}`,
+      "CORE rank", "CORE edition", "Profile", "Categories", "SCImago URL", "ISSN record", "CORE URL"];
     const rows = results.map(({ v, qs }) => [
       v.t, TYPE_SINGULAR[v.y], (v.s || []).join(" "), v.p || "", v.c || "",
       v.o === 2 ? "Diamond" : v.o ? "Yes" : "", v.j ?? "", v.q ? `Q${v.q}` : "", v.h ?? "",
       ...qs.map((q) => (q < 0 ? "absent" : q ? `Q${q}` : "")),
-      v.r?.k || "", v.r?.e || "",
+      v.e ?? "", v.d ?? "",
+      v.r?.k || "", v.r?.e || "", profile(v),
       v.m ? (v.r?.f || []).join("; ") : v.k.map(([c, q]) => D.cats[c].n + (q ? ` (Q${q})` : "")).join("; "),
-      (v.x || []).map((i) => D.topics[i]).join("; "),
-      v.i[0] === "s" ? scimagoUrl(v) : "", v.u || "", v.r ? coreUrl(v.r) : "",
+      v.i[0] === "s" ? scimagoUrl(v) : "", v.s ? issnUrl(v) : "", v.r ? coreUrl(v.r) : "",
     ]);
     const cell = (x) => {
       const s = String(x);
@@ -663,7 +689,6 @@
     $("#data-edition").textContent =
       `This edition: SCImago ${m.scimago.year} (${fmt.format(m.scimago.sources)} sources)` +
       (core ? `, CORE ${core} (${fmt.format(m.core.linked)} linked to SCImago, ${fmt.format(m.core.core_only)} listed only in CORE)` : "") +
-      (m.openalex ? `, OpenAlex topics for ${fmt.format(m.openalex)} sources` : "") +
       `. Updated ${builtText}.`;
     $("#scimago-cite").textContent = `SCImago (n.d.). SJR: SCImago Journal & Country Rank [Portal]. Retrieved ${builtText}, from https://www.scimagojr.com`;
     if (m.partial) {

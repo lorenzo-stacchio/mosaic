@@ -5,7 +5,6 @@ Inputs (all optional except at least one SCImago CSV):
   data/raw/core/conferences.csv   CORE conference ranking export
   data/raw/core/journals.csv      CORE journal ranking export
   data/raw/core/meta.json         CORE editions
-  data/raw/openalex/sources.json  OpenAlex enrichment cache
 """
 
 import csv
@@ -105,6 +104,8 @@ def load_scimago():
                 "sjr": _num(get(row, "SJR")),
                 "q": _quartile(get(row, "SJR Best Quartile")),
                 "h": _num(get(row, "H index"), int),
+                "docs": _num(get(row, f"Total Docs. ({fyear})"), int),
+                "cites": _num(get(row, "Citations / Doc. (2years)")),
                 "country": get(row, "Country").strip(),
                 "coverage": get(row, "Coverage").strip(),
                 "cats": cats,
@@ -143,7 +144,7 @@ def category_areas(records):
             ambiguous.append(cat)
     if ambiguous:
         print(f"[build] {len(ambiguous)} categories assigned by frequency tie-break "
-              f"(expected with partial data): {', '.join(sorted(ambiguous)[:8])}...")
+              f"(check them; expected when only some areas are downloaded): {', '.join(sorted(ambiguous)[:8])}")
     return mapping
 
 
@@ -204,9 +205,6 @@ def build(out_dir=SITE_DATA_DIR):
     cat_area = category_areas(records)
     confs, jnls, core_meta = load_core()
 
-    oa_path = RAW_DIR / "openalex" / "sources.json"
-    openalex = json.loads(oa_path.read_text(encoding="utf-8")) if oa_path.exists() else {}
-
     # --- CORE -> SCImago links
     by_issn = {}
     for sid, r in records.items():
@@ -259,10 +257,6 @@ def build(out_dir=SITE_DATA_DIR):
     cats = sorted(cat_names)
     cat_idx = {c: i for i, c in enumerate(cats)}
 
-    topic_freq = Counter(t for v in openalex.values() if v for t in v["t"])
-    topics = [t for t, _ in topic_freq.most_common()]
-    topic_idx = {t: i for i, t in enumerate(topics)}
-
     # --- venues
     venues = []
     for sid, r in records.items():
@@ -291,12 +285,10 @@ def build(out_dir=SITE_DATA_DIR):
             v["v"] = r["coverage"]
         if sid in core_of:
             v["r"] = core_of[sid]
-        oa = openalex.get(sid)
-        if oa:
-            if oa.get("u"):
-                v["u"] = oa["u"]
-            if oa.get("t"):
-                v["x"] = [topic_idx[t] for t in oa["t"]]
+        if r["docs"] is not None:
+            v["d"] = r["docs"]
+        if r["cites"] is not None:
+            v["e"] = r["cites"]
         venues.append(v)
 
     for c, kind in unmatched:
@@ -333,13 +325,11 @@ def build(out_dir=SITE_DATA_DIR):
                 "linked": len(core_of),
                 "core_only": sum(1 for v in venues if v.get("m")),
             },
-            "openalex": sum(1 for v in openalex.values() if v),
             "partial": n_sc < 20000,
             "pivots": pivots,
         },
         "areas": [{"n": a, "c": SCIMAGO_AREAS.get(a)} for a in areas],
         "cats": [{"n": c, "a": area_idx[cat_area[c]]} for c in cats],
-        "topics": topics,
         "venues": venues,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -347,8 +337,8 @@ def build(out_dir=SITE_DATA_DIR):
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(
         f"[build] {len(venues)} venues ({n_sc} SCImago, {data['meta']['core']['core_only']} CORE-only, "
-        f"{len(core_of)} SCImago linked to CORE), {len(areas)} areas, {len(cats)} categories, "
-        f"{len(topics)} topics -> {out.relative_to(out_dir.parent.parent)} "
+        f"{len(core_of)} SCImago linked to CORE), {len(areas)} areas, {len(cats)} categories "
+        f"-> {out.relative_to(out_dir.parent.parent)} "
         f"({out.stat().st_size // 1024} KB, {time.time() - t0:.1f}s)"
     )
     return data

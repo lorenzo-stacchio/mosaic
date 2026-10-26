@@ -1,7 +1,7 @@
 name: Refresh rankings data
 
 # Runs once a year, after SCImago publishes its yearly update (usually spring),
-# and on demand. Refreshes CORE and the OpenAlex enrichment, tries SCImago,
+# and on demand. Refreshes CORE, tries SCImago,
 # and opens a pull request with the changes for review.
 on:
   schedule:
@@ -25,14 +25,12 @@ jobs:
       - name: SCImago (may be refused; then add the file manually, see README)
         continue-on-error: true
         run: python -m mosaic fetch --scimago
-      - name: OpenAlex topics and websites
-        run: python -m mosaic fetch --openalex
       - name: Check the build
         run: python -m mosaic build
       - uses: peter-evans/create-pull-request@v7
         with:
           branch: data-refresh
-          commit-message: Refresh CORE, SCImago and OpenAlex data
+          commit-message: Refresh CORE and SCImago data
           title: Refresh rankings data
           body: |
             Automated yearly refresh of `data/raw/`.

@@ -13,10 +13,11 @@ them, with:
 
 - the venue's **quartile in each field you chose** (a journal can be Q1 in
   Computer Science and Q3 in History);
-- SJR, best quartile, H-index, publisher, country, open access;
+- SJR, best quartile, H-index, citations per document, yearly output,
+  publisher, country, open access;
 - the **CORE rank** (A*, A, B, C) for computer science venues;
-- **main topics**: SCImago categories plus research topics from OpenAlex;
-- links to the **SCImago profile**, the venue's **website** and its **CORE entry**.
+- a one-sentence **profile** of the venue's scope and its SCImago categories;
+- links to the **SCImago profile**, the **ISSN record** and the **CORE entry**.
 
 Only venues indexed in SCImago or ranked by CORE are listed. CORE currently
 covers computer science only.
@@ -27,10 +28,10 @@ on **GitHub Pages** with no server, or self-hosted with a single Python command.
 ## How it works
 
 ```text
-data/raw/                     python -m mosaic build        site/
-  scimago/*.csv   ─┐                                             index.html
-  core/*.csv      ─┼──►  merge, link CORE↔SCImago, enrich  ──►   assets/
-  openalex/*.json ─┘                                             data/venues.json
+data/raw/                python -m mosaic build           site/
+  scimago/*.csv  ─┐                                         index.html
+                  ├──►  merge, link CORE ↔ SCImago  ──►     assets/
+  core/*.csv     ─┘                                         data/venues.json
 ```
 
 - **Fields and intersection.** Each circle in the interface is a *field*: one
@@ -49,8 +50,9 @@ data/raw/                     python -m mosaic build        site/
   [data/core_overrides.json](data/core_overrides.json). CORE venues that are not
   in SCImago are still listed: their ANZSRC field-of-research codes are mapped
   onto SCImago fields ([mosaic/fields.py](mosaic/fields.py)).
-- **Topics and websites** come from [OpenAlex](https://openalex.org), looked up
-  by ISSN and cached in `data/raw/openalex/sources.json`.
+- **Profiles** are composed in the browser from SCImago data only (subject
+  areas and category quartiles), so they are exact for every venue rather
+  than written by hand.
 - **Shareable searches.** The whole search lives in the URL, so a link
   reproduces it. Results can be downloaded as CSV.
 
@@ -76,22 +78,16 @@ publishes new conference rankings every few years. To refresh:
    year is used anyway). You can also add per-area exports: all CSVs in the
    folder are merged. `python -m mosaic fetch --scimago` tries the
    download automatically and prints the exact URLs if it is refused.
-2. **CORE and OpenAlex**, fully automatic:
+2. **CORE**, fully automatic:
 
    ```bash
-   python -m mosaic fetch --core       # newest CORE editions (e.g. ICORE2026, CORE2020)
-   python -m mosaic fetch --openalex   # topics + websites, incremental and cached
+   python -m mosaic fetch --core   # newest CORE editions (e.g. ICORE2026, CORE2020)
    ```
 
-   No API key is needed: the full SCImago database takes about 300 requests,
-   well within OpenAlex's free daily allowance, and later runs only look up
-   sources that are not cached yet.
 3. `python -m mosaic build`, check locally, commit `data/raw/`.
 
-> **Current data.** The repository ships the SCImago 2024 *Computer Science*
-> export only, so every search currently includes Computer Science (the app
-> shows a notice). Add the full SCImago export as in step 1 to search any
-> combination, e.g. History × Mathematics.
+> **Current data:** SCImago 2025 (32,193 sources, all subject areas), CORE
+> ICORE2026 conferences and CORE2020 journals.
 
 The workflow [update-data.yml](.github/workflows/update-data.yml) repeats
 steps 2–3 every June and opens a pull request; add the SCImago file to that
@@ -127,7 +123,7 @@ Caddy, S3…) can serve it as well.
 
 | Path | Content |
 | --- | --- |
-| `mosaic/fetch.py` | Downloads CORE, SCImago (when allowed) and OpenAlex data |
+| `mosaic/fetch.py` | Downloads CORE and, when allowed, SCImago data |
 | `mosaic/build.py` | Merges the raw data into `site/data/venues.json` |
 | `mosaic/matching.py` | CORE ↔ SCImago conference matching |
 | `mosaic/fields.py` | SCImago areas, ANZSRC FoR names and FoR → SCImago mapping |
@@ -150,5 +146,5 @@ please cite SCImago:
 > SCImago (n.d.). SJR: SCImago Journal & Country Rank [Portal]. Retrieved
 > *date*, from <https://www.scimagojr.com>
 
-Also uses the [CORE Rankings Portal](https://portal.core.edu.au) and
-[OpenAlex](https://openalex.org) (CC0). Code released under the GPL-3.0 license.
+Also uses the [CORE Rankings Portal](https://portal.core.edu.au) and links to
+the [ISSN Portal](https://portal.issn.org). Code released under the GPL-3.0 license.

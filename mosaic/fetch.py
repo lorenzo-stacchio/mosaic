@@ -5,9 +5,6 @@
   scimagojr.com sits behind a browser challenge, so automated downloads are
   often refused; in that case the files must be downloaded from a browser and
   dropped into ``data/raw/scimago/`` (see README).
-* OpenAlex (api.openalex.org): homepage URL and main research topics of each
-  SCImago source, looked up by ISSN. Results are cached and fetched
-  incrementally.
 """
 
 import csv
@@ -16,7 +13,6 @@ import json
 import re
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
 
 from . import RAW_DIR
@@ -26,7 +22,6 @@ USER_AGENT = "mosaic-data-fetcher/1.0 (+https://github.com/; academic venue find
 
 CORE_BASE = "https://portal.core.edu.au"
 SCIMAGO_BASE = "https://www.scimagojr.com/journalrank.php"
-OPENALEX_BASE = "https://api.openalex.org/sources"
 
 
 def _get(url, ua=USER_AGENT, timeout=60):
@@ -118,82 +113,9 @@ def fetch_scimago(year=None, per_area=False):
     return ok
 
 
-# ----------------------------------------------------------------- OpenAlex
-
-def _fmt_issn(raw):
-    raw = raw.strip().upper().replace("-", "")
-    return f"{raw[:4]}-{raw[4:]}" if len(raw) == 8 else None
-
-
-def fetch_openalex(sources, batch=80, max_requests=900):
-    """Enrich SCImago sources ({sourceid: [issn, ...]}) with OpenAlex data.
-
-    Cache file: data/raw/openalex/sources.json
-      {sourceid: {"u": homepage_url, "t": [topic, ...]} | null}
-    ``null`` marks sources OpenAlex does not know, so they are not re-queried.
-    """
-    path = RAW_DIR / "openalex" / "sources.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    cache = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-
-    todo = {}
-    for sid, issns in sources.items():
-        if str(sid) in cache:
-            continue
-        clean = [i for i in (_fmt_issn(x) for x in issns) if i]
-        if clean:
-            todo[str(sid)] = clean
-    print(f"[openalex] {len(cache)} cached, {len(todo)} to look up")
-
-    params = {"select": "issn,homepage_url,topics", "per_page": "200"}
-
-    items = list(todo.items())
-    requests = 0
-    i = 0
-    while i < len(items) and requests < max_requests:
-        chunk, issn_count = [], 0
-        while i < len(items) and issn_count + len(items[i][1]) <= batch:
-            chunk.append(items[i])
-            issn_count += len(items[i][1])
-            i += 1
-        by_issn = {}
-        query = dict(params, filter="issn:" + "|".join(x for _, iss in chunk for x in iss))
-        url = OPENALEX_BASE + "?" + urllib.parse.urlencode(query, safe=":|")
-        try:
-            payload = json.loads(_get(url))
-        except urllib.error.HTTPError as exc:
-            print(f"[openalex] stopped: HTTP {exc.code} (daily budget exhausted?) - rerun later")
-            break
-        requests += 1
-        for res in payload.get("results", []):
-            topics = sorted(res.get("topics") or [], key=lambda t: -t.get("count", 0))
-            entry = {
-                "u": res.get("homepage_url"),
-                "t": [t["display_name"] for t in topics[:6]],
-            }
-            for issn in res.get("issn") or []:
-                by_issn[issn.upper()] = entry
-        for sid, issns in chunk:
-            cache[sid] = next((by_issn[x] for x in issns if x in by_issn), None)
-        if requests % 20 == 0:
-            print(f"[openalex]   {i}/{len(items)} sources")
-            path.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
-        time.sleep(0.12)
-    path.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
-    found = sum(1 for v in cache.values() if v)
-    print(f"[openalex] done: {requests} requests, {found}/{len(cache)} sources enriched")
-    if i < len(items):
-        print(f"[openalex] {len(items) - i} sources left; run the command again to continue")
-
-
 def main(args):
     if args.core:
         fetch_core(args.core_conf_source, args.core_jnl_source)
     if args.scimago:
         fetch_scimago(args.year, per_area=args.per_area)
-    if args.openalex:
-        from .build import load_scimago
-
-        records, _ = load_scimago()
-        fetch_openalex({sid: r["issn"] for sid, r in records.items()}, max_requests=args.max_requests)
     return 0

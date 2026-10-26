@@ -1,6 +1,6 @@
 """Command line entry point.
 
-  python -m mosaic fetch --core --openalex   download / refresh raw data
+  python -m mosaic fetch --core   download / refresh raw data
   python -m mosaic build                     build site/data/venues.json
   python -m mosaic serve                     serve the web app locally
 """
@@ -17,13 +17,11 @@ def parse_args(argv=None):
     f = sub.add_parser("fetch", help="download raw data into data/raw/")
     f.add_argument("--core", action="store_true", help="CORE conference and journal rankings")
     f.add_argument("--scimago", action="store_true", help="try to download SCImago exports")
-    f.add_argument("--openalex", action="store_true", help="enrich SCImago sources with OpenAlex topics/homepages")
     f.add_argument("--all", action="store_true", help="all of the above")
     f.add_argument("--year", type=int, help="SCImago edition (default: latest)")
     f.add_argument("--per-area", action="store_true", help="also download one SCImago file per subject area")
     f.add_argument("--core-conf-source", help="CORE conference edition, e.g. ICORE2026 (default: latest)")
     f.add_argument("--core-jnl-source", help="CORE journal edition, e.g. CORE2020 (default: latest)")
-    f.add_argument("--max-requests", type=int, default=900, help="OpenAlex request budget per run")
 
     sub.add_parser("build", help="build site/data/venues.json from data/raw/")
 
@@ -35,9 +33,9 @@ def parse_args(argv=None):
     args = parser.parse_args(argv)
     if args.command == "fetch":
         if args.all:
-            args.core = args.scimago = args.openalex = True
-        if not (args.core or args.scimago or args.openalex):
-            parser.error("choose at least one of --core, --scimago, --openalex, --all")
+            args.core = args.scimago = True
+        if not (args.core or args.scimago):
+            parser.error("choose at least one of --core, --scimago, --all")
     return args
 
 
