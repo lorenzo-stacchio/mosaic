@@ -27,7 +27,7 @@ def main(args):
         build()
     handler = functools.partial(Handler, directory=str(SITE_DIR))
     with http.server.ThreadingHTTPServer((args.host, args.port), handler) as httpd:
-        print(f"Crossfield running at http://{args.host}:{args.port}/  (Ctrl+C to stop)")
+        print(f"MOSAIC running at http://{args.host}:{args.port}/  (Ctrl+C to stop)")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

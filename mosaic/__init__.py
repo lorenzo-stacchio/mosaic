@@ -1,4 +1,4 @@
-"""Crossfield: find journals and conferences at the intersection of scientific fields.
+"""MOSAIC (Multidisciplinary Outlet Search Across Indexed Categories): find journals and conferences at the intersection of scientific fields.
 
 Data pipeline (fetch + build) that turns the SCImago Journal Rank and CORE
 rankings into a static JSON index consumed by the web app in ``site/``.

@@ -13,7 +13,6 @@
 import csv
 import io
 import json
-import os
 import re
 import time
 import urllib.error
@@ -23,7 +22,7 @@ import urllib.request
 from . import RAW_DIR
 from .fields import SCIMAGO_AREAS
 
-USER_AGENT = "crossfield-data-fetcher/1.0 (+https://github.com/; academic venue finder)"
+USER_AGENT = "mosaic-data-fetcher/1.0 (+https://github.com/; academic venue finder)"
 
 CORE_BASE = "https://portal.core.edu.au"
 SCIMAGO_BASE = "https://www.scimagojr.com/journalrank.php"
@@ -147,10 +146,6 @@ def fetch_openalex(sources, batch=80, max_requests=900):
     print(f"[openalex] {len(cache)} cached, {len(todo)} to look up")
 
     params = {"select": "issn,homepage_url,topics", "per_page": "200"}
-    if os.environ.get("OPENALEX_API_KEY"):
-        params["api_key"] = os.environ["OPENALEX_API_KEY"]
-    if os.environ.get("OPENALEX_MAILTO"):
-        params["mailto"] = os.environ["OPENALEX_MAILTO"]
 
     items = list(todo.items())
     requests = 0

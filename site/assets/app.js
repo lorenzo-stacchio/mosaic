@@ -1,6 +1,6 @@
 "use strict";
 
-/* Crossfield — client-side search over site/data/venues.json.
+/* MOSAIC (Multidisciplinary Outlet Search Across Indexed Categories) — client-side search over site/data/venues.json.
    A "field" (circle) is a set of SCImago subject areas and/or categories that
    count as alternatives (OR). A venue is listed when it belongs to every
    field (AND), or to at least k of them when the overlap slider is lowered. */
@@ -566,7 +566,7 @@
         ? root.dataset.theme === "dark"
         : matchMedia("(prefers-color-scheme: dark)").matches;
       root.dataset.theme = dark ? "light" : "dark";
-      try { localStorage.setItem("crossfield-theme", root.dataset.theme); } catch (_) { /* storage unavailable */ }
+      try { localStorage.setItem("mosaic-theme", root.dataset.theme); } catch (_) { /* storage unavailable */ }
     });
   }
 
@@ -646,7 +646,7 @@
     const csv = "﻿" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    a.download = `crossfield_${names.join("_x_").replace(/[^\w]+/g, "-").slice(0, 120) || "venues"}.csv`;
+    a.download = `mosaic_${names.join("_x_").replace(/[^\w]+/g, "-").slice(0, 120) || "venues"}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -658,9 +658,14 @@
   function renderMeta() {
     const m = D.meta;
     const core = [m.core.conferences && `${m.core.conferences} conferences`, m.core.journals && `${m.core.journals} journals`].filter(Boolean).join(" and ");
-    $("#colophon").innerHTML = `
-      <p>Data: SCImago Journal Rank ${m.scimago.year} (${fmt.format(m.scimago.sources)} sources)${core ? `, CORE ${core} (${fmt.format(m.core.linked)} linked to SCImago, ${fmt.format(m.core.core_only)} listed only in CORE)` : ""}${m.openalex ? `, main topics and websites from OpenAlex (${fmt.format(m.openalex)} sources)` : ""}. Updated ${esc(m.built)}.</p>
-      <p>Quartiles follow SCImago: Q1 is the top quarter of a category by SJR. CORE-only venues are placed in SCImago fields through their ANZSRC field-of-research codes and have no quartile.</p>`;
+    const built = new Date(`${m.built}T12:00:00`);
+    const builtText = isNaN(built) ? m.built : built.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    $("#data-edition").textContent =
+      `This edition: SCImago ${m.scimago.year} (${fmt.format(m.scimago.sources)} sources)` +
+      (core ? `, CORE ${core} (${fmt.format(m.core.linked)} linked to SCImago, ${fmt.format(m.core.core_only)} listed only in CORE)` : "") +
+      (m.openalex ? `, OpenAlex topics for ${fmt.format(m.openalex)} sources` : "") +
+      `. Updated ${builtText}.`;
+    $("#scimago-cite").textContent = `SCImago (n.d.). SJR: SCImago Journal & Country Rank [Portal]. Retrieved ${builtText}, from https://www.scimagojr.com`;
     if (m.partial) {
       const pivot = m.pivots.length ? ` Every source is indexed in ${m.pivots.join(" and ")}, so results always include ${m.pivots.length > 1 ? "these fields" : "this field"}.` : "";
       const notice = $("#notice");
@@ -671,7 +676,7 @@
 
   async function boot() {
     try {
-      const saved = localStorage.getItem("crossfield-theme");
+      const saved = localStorage.getItem("mosaic-theme");
       if (saved) document.documentElement.dataset.theme = saved;
     } catch (_) { /* storage unavailable */ }
 
@@ -683,7 +688,7 @@
       D = await res.json();
     } catch (err) {
       $("#empty").innerHTML = `<h3>The venue index could not be loaded</h3>
-        <p>Expected <code>data/venues.json</code> next to this page (${esc(err.message)}). Build it with <code>python -m crossfield build</code>, then reload.</p>`;
+        <p>Expected <code>data/venues.json</code> next to this page (${esc(err.message)}). Build it with <code>python -m mosaic build</code>, then reload.</p>`;
       return;
     }
     prepare(D);

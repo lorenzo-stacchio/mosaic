@@ -21,16 +21,14 @@ jobs:
         with:
           python-version: "3.12"
       - name: CORE rankings
-        run: python -m crossfield fetch --core
+        run: python -m mosaic fetch --core
       - name: SCImago (may be refused; then add the file manually, see README)
         continue-on-error: true
-        run: python -m crossfield fetch --scimago
+        run: python -m mosaic fetch --scimago
       - name: OpenAlex topics and websites
-        env:
-          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
-        run: python -m crossfield fetch --openalex
+        run: python -m mosaic fetch --openalex
       - name: Check the build
-        run: python -m crossfield build
+        run: python -m mosaic build
       - uses: peter-evans/create-pull-request@v7
         with:
           branch: data-refresh

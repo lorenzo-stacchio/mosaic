@@ -1,8 +1,5 @@
 .git
 .github
-outs
-configs
+tests
 site/data
 **/__pycache__
-*.csv
-!data/raw/**/*.csv

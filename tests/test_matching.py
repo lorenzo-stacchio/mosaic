@@ -1,7 +1,7 @@
 import unittest
 
-from crossfield.fields import for_to_scimago
-from crossfield.matching import match_conferences, normalize_issn, trailing_acronym
+from mosaic.fields import for_to_scimago
+from mosaic.matching import match_conferences, normalize_issn, trailing_acronym
 
 
 def core(id_, title, acronym):

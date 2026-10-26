@@ -64,7 +64,7 @@ def load_scimago():
     if not files:
         raise SystemExit(
             "No SCImago CSV found in data/raw/scimago/. "
-            "Run `python -m crossfield fetch --scimago` or download it from a browser (see README)."
+            "Run `python -m mosaic fetch --scimago` or download it from a browser (see README)."
         )
     parsed = []
     for path in files:

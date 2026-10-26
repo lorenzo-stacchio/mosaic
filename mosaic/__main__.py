@@ -1,8 +1,8 @@
 """Command line entry point.
 
-  python -m crossfield fetch --core --openalex   download / refresh raw data
-  python -m crossfield build                     build site/data/venues.json
-  python -m crossfield serve                     serve the web app locally
+  python -m mosaic fetch --core --openalex   download / refresh raw data
+  python -m mosaic build                     build site/data/venues.json
+  python -m mosaic serve                     serve the web app locally
 """
 
 import argparse
@@ -10,7 +10,7 @@ import sys
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(prog="crossfield", description=__doc__,
+    parser = argparse.ArgumentParser(prog="mosaic", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 

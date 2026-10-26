@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Crossfield</title>
-  <meta name="description" content="Find journals and conferences that count in more than one scientific field, from SCImago and CORE rankings.">
+  <title>MOSAIC: journal search for multidisciplinary teams</title>
+  <meta name="description" content="Find the right journal or conference for your multidisciplinary team: venues indexed in all your fields, with their quartile in each, from SCImago and CORE rankings.">
+  <meta name="author" content="Lorenzo Stacchio">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,11 +16,15 @@
 <body>
   <header class="masthead">
     <div class="wrap masthead-row">
-      <a class="brand" href="./" aria-label="Crossfield, start over">
+      <a class="brand" href="./" aria-label="MOSAIC, start a new search">
         <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="12" cy="16" r="9"/><circle cx="20" cy="16" r="9"/></svg>
-        <span>Crossfield</span>
+        <span class="brand-name">MOSAIC</span>
       </a>
-      <p class="tagline">Journals and conferences that count in more than one field</p>
+      <p class="tagline" aria-label="Multidisciplinary Outlet Search Across Indexed Categories"><b>M</b>ultidisciplinary <b>O</b>utlet <b>S</b>earch <b>A</b>cross <b>I</b>ndexed <b>C</b>ategories</p>
+      <nav class="nav" aria-label="Site">
+        <a href="#credits">Credits</a>
+        <a href="https://lorenzo-stacchio.github.io/" class="nav-maker" rel="author"><span class="nav-made">Made by </span><span class="nav-full">Lorenzo Stacchio</span><span class="nav-short" aria-hidden="true">L. Stacchio</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></a>
+      </nav>
       <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch colour theme">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
       </button>
@@ -29,8 +34,8 @@
   <main>
     <section class="query wrap" aria-labelledby="query-title">
       <div class="query-text">
-        <h1 id="query-title">Where do your fields meet?</h1>
-        <p class="lede">Add two or more fields from the SCImago classification. Crossfield lists the venues indexed in all of them, with their quartile in each field, so you can publish where both communities will recognise the work.</p>
+        <h1 id="query-title">Find the perfect journal for your multidisciplinary team</h1>
+        <p class="lede">Choose the fields your team works across. MOSAIC lists the journals and conferences indexed in all of them, with their quartile in each field, so every co-author&rsquo;s community recognises where you publish.</p>
 
         <ol class="sectors" id="sectors" aria-label="Selected fields"></ol>
 
@@ -131,9 +136,37 @@
     </section>
   </main>
 
-  <footer class="colophon">
-    <div class="wrap" id="colophon">
-      <p>Loading data…</p>
+  <footer class="credits" id="credits" aria-labelledby="credits-title">
+    <div class="wrap">
+      <h2 id="credits-title">Credits</h2>
+      <div class="credits-grid">
+        <section class="credit" aria-labelledby="maker-title">
+          <h3 id="maker-title">Why MOSAIC exists</h3>
+          <p>MOSAIC was made by <a href="https://lorenzo-stacchio.github.io/" rel="author">Lorenzo Stacchio</a>, Research Fellow in Computer Science at the University of Macerata. His research joins extended reality and artificial intelligence with cultural heritage, education, the creative industries and manufacturing, so every paper raises the same question: which venue will a computer scientist and a humanist both respect?</p>
+          <p>Answering it meant cross-checking SCImago category by category. MOSAIC does that crossing for you, and is shared for every team that works between disciplines.</p>
+          <p class="credit-links">
+            <a href="https://lorenzo-stacchio.github.io/" rel="author">lorenzo-stacchio.github.io</a>
+            <a href="https://github.com/lorenzo-stacchio/Scimago-Scraper-for-Multidisciplinar-Computer-Science-">Source code on GitHub</a>
+          </p>
+        </section>
+
+        <section class="credit" aria-labelledby="scimago-title">
+          <h3 id="scimago-title">Built on SCImago</h3>
+          <p>Every quartile, SJR value, H-index and subject category shown here comes from the <a href="https://www.scimagojr.com">SCImago Journal &amp; Country Rank</a>, developed by the SCImago Research Group from Scopus data. MOSAIC adds no ranking of its own: it reorganises SCImago to answer one question its pages leave open, namely which venues belong to several fields at once.</p>
+          <p>If these indicators inform your choice, please cite SCImago:</p>
+          <p class="citation" id="scimago-cite">SCImago (n.d.). SJR: SCImago Journal &amp; Country Rank [Portal]. Retrieved from https://www.scimagojr.com</p>
+        </section>
+
+        <section class="credit" aria-labelledby="sources-title">
+          <h3 id="sources-title">Other sources</h3>
+          <dl class="sources">
+            <div><dt><a href="https://portal.core.edu.au">CORE Rankings Portal</a></dt><dd>A* to C ranks of computer science conferences and journals.</dd></div>
+            <div><dt><a href="https://openalex.org">OpenAlex</a></dt><dd>Main research topics and journal websites, released under CC0.</dd></div>
+          </dl>
+          <p class="edition" id="data-edition">Loading data&hellip;</p>
+        </section>
+      </div>
+      <p class="fineprint">Quartiles follow SCImago: Q1 is the top quarter of a category by SJR. Venues listed only in CORE are placed in SCImago fields through their ANZSRC field-of-research codes and have no quartile. Code released under the GPL-3.0 license.</p>
     </div>
   </footer>
 </body>
