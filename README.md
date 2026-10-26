@@ -3,6 +3,8 @@
 **Multidisciplinary Outlet Search Across Indexed Categories.**
 Find the perfect journal for your multidisciplinary team.
 
+**Live:** <https://lorenzo-stacchio.github.io/mosaic/>
+
 MOSAIC helps researchers who work across disciplines (a chemist building
 machine-learning models, a historian using quantitative methods) choose venues
 that are recognised by *every* community involved. Pick two or more fields from
